@@ -2661,13 +2661,13 @@
                         <div className="space-y-7 px-2">
                             {[
                                 { label: 'Serial Number', value: 'TCC-9942-X01' },
-                                { label: 'Model Spec', value: 'Mark IV Obsidian' },
+                                { label: 'Model Spec', value: 'Midnight Black' },
                                 { label: 'Hardware MAC', value: '00:1A:2B:3C:4D:5E' },
                                 { label: 'Total Uptime', value: '14d 06h 22m' }
                             ].map((info, i) => (
                                 <div key={i} className="flex items-center justify-between border-b border-white/5 pb-4 last:border-0 last:pb-0 group/info">
-                                    <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest italic opacity-60 group-hover/info:opacity-100 transition-opacity">{info.label}</span>
-                                    <span className="text-[12px] font-black text-white uppercase tracking-wider italic group-hover/info:text-primary transition-colors">{info.value}</span>
+                                    <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest opacity-60 group-hover/info:opacity-100 transition-opacity">{info.label}</span>
+                                    <span className="text-[12px] font-black text-white uppercase tracking-wider group-hover/info:text-primary transition-colors">{info.value}</span>
                                 </div>
                             ))}
                         </div>
