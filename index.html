@@ -282,7 +282,7 @@
             return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
         };
 
-        const Header = ({ activeTab, silentMode }) => (
+        const Header = ({ activeTab, silentMode, onAccountClick, onNotifClick, hasUnread }) => (
             <header className="flex items-center justify-between px-6 py-5 border-b border-white/5 bg-black/80 backdrop-blur-md sticky top-0 z-[100] shrink-0">
                 <div className="flex flex-col">
                     <h1 className="text-[11px] font-black tracking-tighter text-white uppercase italic">
@@ -293,31 +293,32 @@
                             <span className="size-1.5 rounded-full bg-primary animate-pulse"></span>
                             <span className="text-[8px] font-bold text-primary/80 uppercase tracking-widest">Connected</span>
                         </div>
-                        <div className="flex items-center gap-3 animate-in fade-in duration-500">
+                        <div className="flex items-center gap-3">
                             <div className="h-2 w-px bg-white/10 mx-0.5"></div>
-                            <div className="flex items-center gap-1.5 transition-all duration-300">
-                                <span 
+                            <div className="flex items-center gap-1.5">
+                                <span
                                     className={`material-symbols-outlined text-[12px] font-black transition-all duration-300 ${!silentMode ? 'text-primary neon-text' : 'text-slate-500'}`}
                                     style={{ fontVariationSettings: !silentMode ? "'FILL' 1" : "''" }}
                                 >
                                     {!silentMode ? 'volume_up' : 'volume_off'}
                                 </span>
                                 <span className={`text-[8px] font-black uppercase tracking-widest transition-all duration-300 ${!silentMode ? 'text-primary/80' : 'text-slate-500/80'}`}>
-                                    {!silentMode ? 'Audio active' : 'Muted'}
+                                    {!silentMode ? 'Audio Active' : 'Muted'}
                                 </span>
                             </div>
                         </div>
                     </div>
                 </div>
                 <div className="flex items-center gap-4">
-                    <button className="flex items-center justify-center text-slate-400 transition-all duration-300 icon-hover-glow">
+                    <button 
+                        onClick={onNotifClick}
+                        className="flex items-center justify-center text-slate-400 transition-all duration-300 icon-hover-glow relative"
+                    >
                         <span className="material-symbols-outlined text-[20px]">notifications</span>
+                        {hasUnread && (
+                            <span className="absolute top-0 right-0 size-2 bg-primary rounded-full shadow-[0_0_8px_#04B2BA] border-2 border-black animate-pulse"></span>
+                        )}
                     </button>
-
-                    <div className="flex items-center justify-center" title="85% Charging">
-                        <span className="material-symbols-outlined text-[20px] text-emerald-500 animate-pulse" style={{ fontVariationSettings: "'FILL' 1" }}>battery_charging_80</span>
-                    </div>
-
                     <button 
                         onClick={() => window.dispatchTabChange('settings')}
                         className={`flex items-center justify-center transition-all duration-300 ${
@@ -331,7 +332,10 @@
                             style={activeTab === 'settings' ? { fontVariationSettings: "'FILL' 1" } : {}}
                         >settings</span>
                     </button>
-                    <button className="flex items-center justify-center text-slate-400 transition-all duration-300 icon-hover-glow">
+                    <button 
+                        onClick={onAccountClick}
+                        className="flex items-center justify-center text-slate-400 transition-all duration-300 icon-hover-glow"
+                    >
                         <span className="material-symbols-outlined text-[22px]">account_circle</span>
                     </button>
                 </div>
@@ -1315,19 +1319,21 @@
                         <div className="bg-card-dark border border-white/10 rounded-3xl p-6 space-y-6">
                             {/* Hardware Status */}
                             <div className="space-y-4">
-                                <label className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-500 ml-1 text-shadow-none">HARDWARE STATUS</label>
+                                <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 ml-1 italic">Hardware Status</label>
                                 <div
-                                    onClick={() => setGlobalSettings(prev => ({ ...prev, silentMode: !prev.silentMode }))}
+                                    onClick={() => {
+                                        const newVal = !currentKey.soundEnabled;
+                                        onUpdate(selectedKey, { soundEnabled: newVal });
+                                        setGlobalSettings(prev => ({ ...prev, silentMode: !newVal }));
+                                    }}
                                     className="flex items-center justify-between bg-black/40 border border-white/5 rounded-2xl px-5 py-4 cursor-pointer hover:bg-white/5 transition-all group"
                                 >
                                     <div className="flex flex-col">
-                                        <span className="text-[11px] font-black text-white uppercase tracking-wider">PHYSICAL SWITCH</span>
-                                        <span className={`text-[9px] font-black uppercase tracking-widest mt-0.5 transition-colors ${!globalSettings.silentMode ? 'text-primary' : 'text-slate-500'}`}>
-                                            {!globalSettings.silentMode ? 'AUDIBLE FEEDBACK ACTIVE' : 'SOUND OUTPUT MUTED'}
-                                        </span>
+                                        <span className="text-[11px] font-bold text-white uppercase tracking-wider">Physical Switch</span>
+                                        <span className="text-[9px] text-slate-500 font-bold uppercase tracking-widest mt-0.5">{currentKey.soundEnabled ? 'Audible Feedback Active' : 'Sound Output Muted'}</span>
                                     </div>
-                                    <div className={`relative inline-flex h-6 w-11 items-center rounded-full border border-white/10 transition-colors ${!globalSettings.silentMode ? 'bg-primary/20 border-primary/30' : 'bg-white/10'}`}>
-                                        <span className={`inline-block h-4 w-4 transform rounded-full shadow-lg transition-transform duration-200 ${!globalSettings.silentMode ? 'translate-x-[22px] bg-primary neon-blur shadow-[0_0_10px_#04B2BA]' : 'translate-x-1 bg-slate-500'}`}></span>
+                                    <div className={`relative inline-flex h-6 w-11 items-center rounded-full border border-white/10 transition-colors ${currentKey.soundEnabled ? 'bg-primary/20 border-primary/30' : 'bg-white/10'}`}>
+                                        <span className={`inline-block h-4 w-4 transform rounded-full shadow-lg transition-transform duration-200 ${currentKey.soundEnabled ? 'translate-x-[22px] bg-primary neon-glow' : 'translate-x-1 bg-slate-500'}`}></span>
                                     </div>
                                 </div>
                             </div>
@@ -2340,26 +2346,45 @@
         };
 
         const ActiveSlots = ({ keysData }) => {
-            const activeKeys = keysData.filter(k => k.active).slice(0, 3);
+            const activeKeys = keysData.filter(k => k.active);
             return (
                 <section className="mb-12">
                     <div className="flex items-center justify-between mb-6 px-1">
                         <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-500 italic text-shadow-none">ACTIVE SLOTS</h3>
-                        <button className="text-primary text-[10px] font-black uppercase tracking-wider hover:underline transition-all">VIEW ALL</button>
+                        <span className="text-primary text-[9px] font-black uppercase tracking-wider px-2 py-0.5 bg-primary/10 rounded-full border border-primary/20">
+                            {activeKeys.length} ACTIVE
+                        </span>
                     </div>
                     <div className="space-y-4">
-                        {activeKeys.map(key => (
-                            <div key={key.id} className={`slot-item flex items-center gap-4 ${key.id === 1 ? (key.isBreak ? 'bg-amber-500/5 border-amber-500/20' : 'bg-primary/5 border-primary/20') : 'bg-white/5 border-white/5'} p-4 rounded-2xl transition-all hover:bg-white/10 group animate-in slide-in-from-bottom-2`}>
-                                <div className={`size-11 rounded-xl ${key.id === 1 ? (key.isBreak ? 'bg-amber-500 text-black' : 'bg-primary text-black') : 'bg-white/10 text-slate-300'} flex items-center justify-center font-black text-sm`}>{key.id}</div>
-                                <div className="flex-1">
-                                    <p className={`font-black ${key.id === 1 ? 'text-white' : 'text-slate-200'} text-[13px] leading-tight uppercase`}>{key.label}</p>
-                                    <p className={`text-[10px] ${key.id === 1 ? (key.isBreak ? 'text-amber-500' : 'text-primary') : 'text-slate-500'} font-bold tracking-wide mt-0.5 uppercase`}>
-                                        {key.mode === 'TIMER' ? (key.isBreak ? `${formatTime(key.remaining)} BREAK TIME` : `${formatTime(key.remaining)} REMAINING`) : (key.mode === 'ALARM' ? `${key.targetTime} AM` : 'ACTIVE')}
-                                    </p>
-                                </div>
-                                <span className={`material-symbols-outlined ${key.id === 1 ? (key.isBreak ? 'text-amber-500' : 'text-primary') : 'text-slate-500'} text-[22px]`} style={{ fontVariationSettings: "'FILL' 1" }}>{key.icon}</span>
+                        {activeKeys.length === 0 ? (
+                            <div className="flex flex-col items-center justify-center py-10 opacity-20">
+                                <span className="material-symbols-outlined text-4xl mb-2 text-slate-500">inbox</span>
+                                <span className="text-[9px] font-black uppercase tracking-widest text-slate-500">No Active Slots</span>
                             </div>
-                        ))}
+                        ) : activeKeys.map(key => {
+                            const isRunningTimer = key.mode === 'TIMER';
+                            const isBreakActive = key.isBreak;
+
+                            const accentColor = isBreakActive ? 'text-amber-500' : 'text-primary';
+                            const bgColor = isBreakActive ? 'bg-amber-500/5 border-amber-500/20' : 'bg-primary/5 border-primary/20';
+                            const badgeBg = isBreakActive ? 'bg-amber-500' : 'bg-primary';
+
+                            const subtext = key.mode === 'TIMER'
+                                ? (isBreakActive ? `${formatTime(key.remaining)} BREAK` : `${formatTime(key.remaining)} REMAINING`)
+                                : key.mode === 'ALARM'
+                                    ? `${key.targetTime} · ALARM SET`
+                                    : 'MACRO ACTIVE';
+                            return (
+                                <div key={key.id} className={`slot-item flex items-center gap-4 border ${bgColor} p-4 rounded-2xl transition-all hover:bg-white/10 group animate-in slide-in-from-bottom-2`}>
+                                    <div className={`size-11 rounded-xl ${badgeBg} text-black flex items-center justify-center font-black text-sm shrink-0`}>{key.id}</div>
+                                    <div className="flex-1 min-w-0">
+                                        <p className="font-black text-white text-[13px] leading-tight uppercase truncate">{key.label}</p>
+                                        <p className={`text-[10px] ${accentColor} font-bold tracking-wide mt-0.5 uppercase`}>{subtext}</p>
+                                    </div>
+                                    <span className={`material-symbols-outlined ${accentColor} text-[22px] shrink-0`} style={{ fontVariationSettings: "'FILL' 1" }}>{key.icon}</span>
+                                </div>
+                            );
+                        })}
                     </div>
                 </section>
             );
@@ -2382,10 +2407,10 @@
 
             // Real HTTP time APIs — each one genuinely fetches from a different source
             const ntpServers = [
-                { name: 'worldtimeapi.org', url: 'https://worldtimeapi.org/api/timezone/Etc/UTC', parse: async r => { const j = await r.json(); return new Date(j.datetime || j.utc_datetime).getTime(); } },
-                { name: 'timeapi.io',       url: 'https://timeapi.io/api/time/current/ip',     parse: async r => { const j = await r.json(); return new Date(j.dateTime || j.datetime).getTime(); } },
-                { name: 'cloudflare.com',   url: 'https://www.cloudflare.com/cdn-cgi/trace',   parse: async r => { const t = await r.text(); const ts = t.match(/ts=([\d.]+)/)?.[1]; return ts ? parseFloat(ts)*1000 : NaN; } },
-                { name: 'worldclockapi.com',url: 'https://worldclockapi.com/api/json/utc/now', parse: async r => { const j = await r.json(); return new Date(j.currentDateTime || j.datetime).getTime(); } },
+                { name: 'worldtimeapi.org', url: 'https://worldtimeapi.org/api/ip',             parse: async r => new Date((await r.json()).datetime).getTime() },
+                { name: 'timeapi.io',       url: 'https://timeapi.io/api/time/current/ip',     parse: async r => new Date((await r.json()).dateTime).getTime() },
+                { name: 'worldclockapi.com',url: 'https://worldclockapi.com/api/json/utc/now', parse: async r => new Date((await r.json()).currentDateTime).getTime() },
+                { name: 'cloudflare.com',   url: 'https://www.cloudflare.com/cdn-cgi/trace',   parse: async r => { const t = await r.text(); return parseFloat(t.match(/ts=([\d.]+)/)?.[1]||0)*1000; } },
             ];
 
             const selectedServerRef = React.useRef(ntpServers[0]);
@@ -2393,31 +2418,20 @@
 
             const doSync = React.useCallback(async () => {
                 setIsSyncing(true);
-                const server = ntpServers.find(s => s.name === selectedServerRef.current.name) || ntpServers[0];
+                const server = selectedServerRef.current;
                 const t0 = performance.now();
                 try {
                     const r = await fetch(server.url);
-                    if (!r.ok) throw new Error('Server unreachable');
-                    
                     const serverTime = await server.parse(r);
-                    if (!serverTime || isNaN(serverTime)) throw new Error('Invalid time format');
-
                     const lat = Math.round(performance.now() - t0);
                     const drift = serverTime - (Date.now() - lat / 2);
-                    
-                    if (isNaN(drift)) throw new Error('Drift calculation error');
-
                     setLatency(lat);
                     setOffsetMs(drift);
                     setLastSync(`${new Date().toLocaleTimeString()} via ${server.name} — Offset: ${(drift/1000).toFixed(4)}s`);
                 } catch(e) {
-                    console.error("Sync Error:", e);
-                    setLastSync(`Sync failed (${server.name}) — falling back to system time`);
-                    setLatency(0); 
-                    // Don't reset offsetMs to 0 immediately to avoid jump, but ensure we don't use NaN
-                    setOffsetMs(prev => isNaN(prev) ? 0 : prev);
+                    setLastSync(`Sync failed (${server.name}) — using local time`);
                 } finally {
-                    setTimeout(() => setIsSyncing(false), 800);
+                    setTimeout(() => setIsSyncing(false), 600);
                 }
             }, []);
 
@@ -2661,13 +2675,13 @@
                         <div className="space-y-7 px-2">
                             {[
                                 { label: 'Serial Number', value: 'TCC-9942-X01' },
-                                { label: 'Model Spec', value: 'Midnight Black' },
+                                { label: 'Model Spec', value: 'Mark IV Obsidian' },
                                 { label: 'Hardware MAC', value: '00:1A:2B:3C:4D:5E' },
                                 { label: 'Total Uptime', value: '14d 06h 22m' }
                             ].map((info, i) => (
                                 <div key={i} className="flex items-center justify-between border-b border-white/5 pb-4 last:border-0 last:pb-0 group/info">
-                                    <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest opacity-60 group-hover/info:opacity-100 transition-opacity">{info.label}</span>
-                                    <span className="text-[12px] font-black text-white uppercase tracking-wider group-hover/info:text-primary transition-colors">{info.value}</span>
+                                    <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest italic opacity-60 group-hover/info:opacity-100 transition-opacity">{info.label}</span>
+                                    <span className="text-[12px] font-black text-white uppercase tracking-wider italic group-hover/info:text-primary transition-colors">{info.value}</span>
                                 </div>
                             ))}
                         </div>
@@ -2708,10 +2722,95 @@
             );
         };
 
+        const SystemModal = ({ title, isOpen, onClose, children }) => {
+            if (!isOpen) return null;
+            return (
+                <div className="absolute inset-0 z-[100] flex items-center justify-center p-6 animate-in fade-in duration-300">
+                    <div className="absolute inset-0 bg-black/80 backdrop-blur-md" onClick={onClose} />
+                    <div className="bg-[#0D0D0F] border border-white/10 rounded-[2.5rem] w-full max-w-[340px] overflow-hidden relative z-10 animate-in zoom-in-95 fade-in duration-300 shadow-[0_30px_60px_-12px_rgba(0,0,0,0.5)]">
+                        <div className="p-8 pb-4 flex items-center justify-between">
+                            <h3 className="text-[11px] font-black uppercase tracking-[0.2em] text-slate-500 italic">{title}</h3>
+                            <button onClick={onClose} className="size-10 rounded-full bg-white/5 flex items-center justify-center hover:bg-white/10 transition-colors">
+                                <span className="material-symbols-outlined text-[20px] text-slate-400">close</span>
+                            </button>
+                        </div>
+                        {children}
+                    </div>
+                </div>
+            );
+        };
+
+        const AccountModalContent = () => {
+            const [alertsEnabled, setAlertsEnabled] = useState(true);
+            return (
+                <div className="p-8 pt-4 space-y-8">
+                    <div className="flex items-center gap-5">
+                        <div className="size-16 rounded-full bg-primary flex items-center justify-center text-black font-black text-xl shadow-[0_0_20px_rgba(4,178,186,0.3)]">JD</div>
+                        <div>
+                            <h4 className="text-lg font-black text-white italic tracking-tighter leading-none">John Doe</h4>
+                            <p className="text-slate-500 font-bold text-[9px] uppercase tracking-widest mt-1">j.doe@system.cc</p>
+                        </div>
+                    </div>
+                    <div className="bg-black/40 rounded-3xl p-5 border border-white/5 space-y-3">
+                        <div className="flex items-center justify-between">
+                            <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest italic opacity-60">System Alerts</span>
+                            <button
+                                onClick={() => setAlertsEnabled(!alertsEnabled)}
+                                className={`relative inline-flex h-5 w-10 items-center rounded-full border border-white/10 transition-colors ${alertsEnabled ? 'bg-primary/20 border-primary/30' : 'bg-white/10'}`}>
+                                <span className={`inline-block h-3.5 w-3.5 transform rounded-full shadow-lg transition-transform duration-200 ${alertsEnabled ? 'translate-x-5 bg-primary' : 'translate-x-1 bg-slate-500'}`}></span>
+                            </button>
+                        </div>
+                        <p className="text-[8px] text-slate-600 font-bold uppercase tracking-[0.1em] leading-relaxed italic">Receive real-time push events for temporal sync and hardware health.</p>
+                    </div>
+                    <div className="space-y-3">
+                        <button className="w-full py-4 rounded-2xl bg-primary text-black font-black uppercase tracking-[0.2em] text-[9px] shadow-lg shadow-primary/20 hover:scale-[1.02] active:scale-[0.98] transition-all italic">Edit Profile</button>
+                        <button className="w-full py-4 rounded-2xl bg-transparent border border-white/10 text-white font-black uppercase tracking-[0.2em] text-[10px] hover:bg-white/5 active:scale-[0.98] transition-all italic">Sign Out</button>
+                    </div>
+                </div>
+            );
+        };
+
+        const NotificationsModalContent = ({ notifications, onClear }) => (
+            <div className="p-8 pt-4 space-y-6">
+                <div className="space-y-2.5 max-h-[300px] overflow-y-auto no-scrollbar">
+                    {notifications.length > 0 ? (
+                        notifications.map((log, i) => (
+                            <div key={i} className="bg-black/40 border border-white/5 rounded-2xl p-4 transition-all hover:bg-black/60 cursor-default animate-in slide-in-from-top-2 duration-300">
+                                <div className="flex items-center justify-between mb-1">
+                                    <span className="text-[8px] font-bold text-slate-600 uppercase tracking-widest">{log.time}</span>
+                                    <span className={`size-1 rounded-full ${log.type === 'system' ? 'bg-primary' : 'bg-slate-500'} shadow-[0_0_6px_currentColor]`}></span>
+                                </div>
+                                <p className="text-[10px] font-bold text-slate-300 uppercase tracking-wider italic leading-normal">{log.msg}</p>
+                            </div>
+                        ))
+                    ) : (
+                        <div className="flex flex-col items-center justify-center py-10 opacity-20">
+                            <span className="material-symbols-outlined text-4xl mb-2 text-slate-500">notifications_off</span>
+                            <span className="text-[9px] font-black uppercase tracking-widest text-slate-500">No active alerts</span>
+                        </div>
+                    )}
+                </div>
+                <button 
+                    onClick={onClear}
+                    className="w-full py-3.5 rounded-xl bg-white/5 text-slate-500 font-extrabold uppercase tracking-[0.2em] text-[9px] hover:text-white hover:bg-white/10 transition-all italic"
+                >
+                    Clear Feed
+                </button>
+            </div>
+        );
+
         const App = () => {
             const [activeTab, setActiveTab] = useState('keys');
             const [selectedKey, setSelectedKey] = useState(1);
             const [keysData, setKeysData] = useState(INITIAL_KEYS);
+            const [showAccountModal, setShowAccountModal] = useState(false);
+            const [showNotifModal, setShowNotifModal] = useState(false);
+            const [notifications, setNotifications] = useState([
+                { time: '17:20:01', type: 'system', msg: 'System Restore: Operation Complete' },
+                { time: '16:58:32', type: 'system', msg: 'Temporal Engine Synced: Cloudflare' },
+                { time: '16:30:00', type: 'info', msg: 'Silent Mode Activated: Hardware' }
+            ]);
+            const [hasUnreadNotif, setHasUnreadNotif] = useState(false);
             const [customPalette, setCustomPalette] = useState(['#00C2FF', '#FF2D55', '#AF52DE', '#FF9500', '#5856D6']);
             const [baseConfig, setBaseConfig] = useState({
                 sync: true,
@@ -2721,6 +2820,7 @@
                 speed: 50
             });
             const [globalSettings, setGlobalSettings] = useState({
+                gameSounds: true,
                 silentMode: false
             });
             const [discoConfig, setDiscoConfig] = useState({
@@ -2743,6 +2843,21 @@
             const [confirmConfig, setConfirmConfig] = useState({ title: '', message: '', variant: 'danger', onConfirm: () => { } });
  
             const appRef = useRef(null);
+            const addNotifRef = useRef(null);
+            const showNotifModalRef = useRef(showNotifModal);
+
+            // Keep ref in sync with state so the timer loop always calls the latest version
+            useEffect(() => { showNotifModalRef.current = showNotifModal; }, [showNotifModal]);
+
+            const addNotification = (msg, type = 'info') => {
+                const now = new Date();
+                const timeStr = now.toTimeString().split(' ')[0];
+                setNotifications(prev => [{ time: timeStr, type, msg }, ...prev].slice(0, 15));
+                if (!showNotifModalRef.current) setHasUnreadNotif(true);
+            };
+
+            // Always keep ref pointing to the latest addNotification
+            addNotifRef.current = addNotification;
  
             // Register global tab change handler
             useEffect(() => {
@@ -2761,19 +2876,22 @@
                             if (key.remaining > 0) {
                                 return { ...key, remaining: key.remaining - 1 };
                             } else {
-                                // Timer reached zero
+                                // Timer reached zero — use ref to avoid stale closure
                                 if (key.recurrent) {
                                     if (key.includeBreak) {
                                         const nextIsBreak = !key.isBreak;
+                                        addNotifRef.current(`Key ${key.id}: ${nextIsBreak ? '☕ Break Started' : '🎯 Focus Started'}`, 'system');
                                         return {
                                             ...key,
                                             isBreak: nextIsBreak,
                                             remaining: nextIsBreak ? key.breakDuration : key.workDuration
                                         };
                                     } else {
+                                        addNotifRef.current(`Key ${key.id}: Timer Restarted`, 'info');
                                         return { ...key, remaining: key.workDuration };
                                     }
                                 } else {
+                                    addNotifRef.current(`Key ${key.id}: Timer Completed`, 'system');
                                     return { ...key, active: false };
                                 }
                             }
@@ -2782,6 +2900,23 @@
                     }));
                 }, 1000);
                 return () => clearInterval(interval);
+            }, []);
+
+            // ALARM MONITOR — checks every minute if any active alarm matches current time
+            useEffect(() => {
+                const alarmCheck = setInterval(() => {
+                    const now = new Date();
+                    const hhmm = `${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
+                    setKeysData(prev => {
+                        prev.forEach(key => {
+                            if (key.mode === 'ALARM' && key.active && key.targetTime === hhmm) {
+                                addNotifRef.current(`⏰ Key ${key.id} — Alarm Triggered at ${hhmm}`, 'system');
+                            }
+                        });
+                        return prev; // no state change, just side-effect
+                    });
+                }, 10000); // check every 10s for accuracy
+                return () => clearInterval(alarmCheck);
             }, []);
 
             const updateKey = (id, newConfig) => {
@@ -2799,8 +2934,28 @@
             }, []);
 
             return (
-                <div ref={appRef} className="flex flex-col h-full bg-black">
-                    <Header activeTab={activeTab} silentMode={globalSettings.silentMode} />
+                <div ref={appRef} className="flex flex-col h-full bg-black relative">
+                    <Header 
+                        activeTab={activeTab} 
+                        silentMode={globalSettings.silentMode} 
+                        onAccountClick={() => setShowAccountModal(true)}
+                        onNotifClick={() => {
+                            setShowNotifModal(true);
+                            setHasUnreadNotif(false);
+                        }}
+                        hasUnread={hasUnreadNotif}
+                    />
+                    
+                    <SystemModal title="Account" isOpen={showAccountModal} onClose={() => setShowAccountModal(false)}>
+                        <AccountModalContent />
+                    </SystemModal>
+
+                    <SystemModal title="Notifications" isOpen={showNotifModal} onClose={() => setShowNotifModal(false)}>
+                        <NotificationsModalContent 
+                            notifications={notifications} 
+                            onClear={() => setNotifications([])} 
+                        />
+                    </SystemModal>
                     <div className="scroll-container px-6 py-6" id="main-content">
                         {activeTab === 'keys' ? (
                             <React.Fragment>
