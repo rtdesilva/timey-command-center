@@ -2880,7 +2880,7 @@
                                 if (key.recurrent) {
                                     if (key.includeBreak) {
                                         const nextIsBreak = !key.isBreak;
-                                        addNotifRef.current(`Key ${key.id}: ${nextIsBreak ? '☕ Break Started' : '🎯 Focus Started'}`, 'system');
+                                        addNotifRef.current(`Key ${key.id}: ${nextIsBreak ? 'Break Started' : 'Focus Started'}`, 'system');
                                         return {
                                             ...key,
                                             isBreak: nextIsBreak,
@@ -2910,7 +2910,7 @@
                     setKeysData(prev => {
                         prev.forEach(key => {
                             if (key.mode === 'ALARM' && key.active && key.targetTime === hhmm) {
-                                addNotifRef.current(`⏰ Key ${key.id} — Alarm Triggered at ${hhmm}`, 'system');
+                                addNotifRef.current(`Key ${key.id} — Alarm Triggered at ${hhmm}`, 'system');
                             }
                         });
                         return prev; // no state change, just side-effect
